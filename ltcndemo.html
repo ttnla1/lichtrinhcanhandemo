@@ -1,262 +1,1169 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="vi">
-<head>
-<meta charset="UTF-8">
-<title>Thời Gian Biểu Cá Nhân</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thời Gian Biểu Học Thêm</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+  <style>
+        body {
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        .time-slot {
+            min-height: 80px;
+            border: 2px solid #e5e7eb;
+        }
+        .last-row td:first-child {
+            border-bottom-left-radius: 1rem;
+        }
+        .last-row td:last-child {
+            border-bottom-right-radius: 1rem;
+        }
+        .editable {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .editable:hover {
+            background-color: #f3f4f6;
+        }
+        .time-slot:hover .opacity-0 {
+            opacity: 1;
+        }
+        .delete-btn {
+            transition: all 0.2s;
+        }
+        .delete-btn:hover {
+            transform: scale(1.1);
+        }
+        .editing {
+            background-color: #dbeafe !important;
+            border: 2px solid #3b82f6;
+        }
+        .mobile-schedule {
+            width: 1080px;
+            height: 1920px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            position: fixed;
+            top: -9999px;
+            left: -9999px;
+            z-index: -1;
+        }
+        .mobile-schedule .schedule-title {
+            color: white;
+            font-size: 48px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .mobile-schedule .time-block {
+            background: rgba(255,255,255,0.95);
+            border-radius: 20px;
+            margin-bottom: 20px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+        .mobile-schedule .time-header {
+            font-size: 32px;
+            font-weight: bold;
+            color: #4a5568;
+            margin-bottom: 20px;
+            text-align: center;
+            border-bottom: 3px solid #e2e8f0;
+            padding-bottom: 15px;
+        }
+        .mobile-schedule .day-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+        .mobile-schedule .day-item {
+            background: #f7fafc;
+            border-radius: 12px;
+            padding: 15px;
+            border-left: 5px solid #4299e1;
+        }
+        .mobile-schedule .day-name {
+            font-size: 20px;
+            font-weight: bold;
+            color: #2d3748;
+            margin-bottom: 8px;
+        }
+        .mobile-schedule .subject {
+            font-size: 18px;
+            color: #4a5568;
+            margin-bottom: 5px;
+        }
+        .mobile-schedule .address {
+            font-size: 14px;
+            color: #718096;
+            margin-bottom: 10px;
+        }
+        .mobile-schedule .tasks {
+            font-size: 14px;
+        }
+        .mobile-schedule .task-item {
+            margin: 3px 0;
+            color: #2d3748;
+        }
+        .mobile-schedule .task-completed {
+            text-decoration: line-through;
+            color: #68d391;
+        }
+    </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+  <script src="/_sdk/element_sdk.js" type="text/javascript"></script>
+ </head>
+ <body class="bg-gray-50 min-h-full">
+  <main class="container mx-auto px-4 py-8">
+   <header class="text-center mb-8 relative">
+    <div class="absolute top-0 left-0"><a href="https://nckhthptnk.github.io/minitkb/" target="_blank" rel="noopener noreferrer" class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg font-medium transition-colors shadow-md hover:shadow-lg inline-flex items-center gap-2"> 🏠 Trang chủ </a>
+    </div>
+    <h1 class="text-3xl font-bold mb-2">📋 <span style="background: linear-gradient(135deg, #ff6b9d, #c44569); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Lịch Trình Cá Nhân</span></h1>
+    <p class="text-gray-600">Nhấp vào ô để chỉnh sửa thông tin</p>
+   </header>
+   <div class="mb-6 bg-white rounded-lg p-4 shadow-md">
+    <h3 class="text-lg font-semibold text-gray-800 mb-3">🎨 Chọn màu tiêu đề:</h3>
+    <div class="flex flex-wrap gap-3 justify-center mb-4"><button onclick="changeHeaderColor('buttercup')" class="w-12 h-12 rounded-lg border-2 border-gray-300 hover:border-gray-500 transition-colors" style="background-color: #fffbeb;" title="Buttercup - Vàng rất nhạt"></button> <button onclick="changeHeaderColor('soft-peach')" class="w-12 h-12 rounded-lg border-2 border-gray-300 hover:border-gray-500 transition-colors" style="background-color: #fff7ed;" title="Soft Peach - Cam rất nhạt"></button> <button onclick="changeHeaderColor('pale-pink')" class="w-12 h-12 rounded-lg border-2 border-gray-300 hover:border-gray-500 transition-colors" style="background-color: #fdf2f8;" title="Pale Pink - Hồng rất nhạt"></button> <button onclick="changeHeaderColor('lavender')" class="w-12 h-12 rounded-lg border-2 border-gray-300 hover:border-gray-500 transition-colors" style="background-color: #f5f3ff;" title="Lavender - Tím rất nhạt"></button> <button onclick="changeHeaderColor('cool-aqua')" class="w-12 h-12 rounded-lg border-2 border-gray-300 hover:border-gray-500 transition-colors" style="background-color: #f0fdfa;" title="Cool Aqua - Xanh rất nhạt"></button> <button onclick="changeHeaderColor('meadow-green')" class="w-12 h-12 rounded-lg border-2 border-gray-300 hover:border-gray-500 transition-colors" style="background-color: #f0fdf4;" title="Meadow Green - Xanh lá rất nhạt"></button> <button onclick="changeHeaderColor('soft-red')" class="w-12 h-12 rounded-lg border-2 border-gray-300 hover:border-gray-500 transition-colors" style="background-color: #fef2f2;" title="Soft Red - Đỏ rất nhạt"></button>
+    </div>
+   </div>
+   <div class="bg-white rounded-2xl shadow-lg overflow-hidden mb-8 border-2 border-gray-200">
+    <table class="w-full table-fixed border-collapse">
+     <thead>
+      <tr id="headerRow" style="background-color: #fffbeb; color: #a16207;">
+       <th class="text-left p-4 font-semibold border-r first:rounded-tl-2xl" style="border-color: #fbbf24;">Thời Gian</th>
+       <th class="text-center p-4 font-semibold border-r" style="border-color: #fbbf24;">Thứ Hai</th>
+       <th class="text-center p-4 font-semibold border-r" style="border-color: #fbbf24;">Thứ Ba</th>
+       <th class="text-center p-4 font-semibold border-r" style="border-color: #fbbf24;">Thứ Tư</th>
+       <th class="text-center p-4 font-semibold border-r" style="border-color: #fbbf24;">Thứ Năm</th>
+       <th class="text-center p-4 font-semibold border-r" style="border-color: #fbbf24;">Thứ Sáu</th>
+       <th class="text-center p-4 font-semibold border-r" style="border-color: #fbbf24;">Thứ Bảy</th>
+       <th class="text-center p-4 font-semibold last:rounded-tr-2xl">Chủ Nhật</th>
+      </tr>
+     </thead>
+     <tbody id="scheduleTable"><!-- Các hàng thời gian sẽ được tạo bằng JavaScript -->
+     </tbody>
+    </table>
+   </div>
+   <div class="flex flex-wrap gap-3 justify-center mb-8"><button onclick="addNewTimeSlot()" class="bg-indigo-500 hover:bg-indigo-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors shadow-md hover:shadow-lg"> Thêm Khung Giờ </button> <button onclick="saveSchedule()" class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors shadow-md hover:shadow-lg"> Lưu Thời Gian Biểu </button> <button onclick="loadSchedule()" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors shadow-md hover:shadow-lg"> Tải Thời Gian Biểu </button> <button onclick="clearSchedule()" class="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors shadow-md hover:shadow-lg"> Xóa Tất Cả </button> <button onclick="downloadScheduleImage()" class="bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors shadow-md hover:shadow-lg"> 📱 Tải về điện thoại </button>
+   </div>
+   <div class="bg-gradient-to-r from-purple-100 to-pink-100 rounded-lg p-6 shadow-md mb-6 border-l-4 border-purple-500">
+    <div class="text-center">
+     <h3 class="text-xl font-semibold text-purple-800 mb-3">🔥 MOTIVATION 🔥</h3>
+     <p class="text-lg text-purple-700 italic font-medium leading-relaxed">"Mong rằng ước mơ của cậu sẽ không chỉ lưu lại mãi là ước mơ"</p>
+     <p class="text-sm text-purple-600 mt-2 font-semibold">- Snooze -</p>
+    </div>
+   </div>
+   <div class="bg-white rounded-lg p-6 shadow-md">
+    <h3 class="text-xl font-semibold text-gray-800 mb-4">Hướng dẫn sử dụng</h3>
+    <ul class="text-gray-600 space-y-2">
+     <li>• Nhấp vào ô thời gian để chỉnh sửa giờ học</li>
+     <li>• Nhấp vào ô môn học để nhập tên môn và địa chỉ</li>
+     <li>• Nhấp nút "+ Thêm" để tạo việc cần làm mới</li>
+     <li>• Tick vào checkbox khi hoàn thành từng việc</li>
+     <li>• Nhấn Enter để thêm việc tiếp theo, × để xóa</li>
+     <li>• Nhấp "Thêm Khung Giờ" để tạo thêm thời gian mới</li>
+     <li>• Di chuột qua ô thời gian và nhấp nút × để xóa hàng</li>
+    </ul>
+   </div>
+  </main><!-- Container ẩn để tạo ảnh mobile -->
+  <div id="mobileScheduleContainer" class="mobile-schedule"><!-- Nội dung sẽ được tạo bằng JavaScript -->
+  </div><!-- Modal chỉnh sửa môn học -->
+  <div id="editModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+   <div class="bg-white rounded-lg p-6 w-96 max-w-90vw">
+    <h3 class="text-xl font-semibold mb-4 text-gray-800">Chỉnh sửa thông tin học</h3>
+    <div class="space-y-4">
+     <div><label for="subjectSelect" class="block text-sm font-medium text-gray-700 mb-1">Môn học:</label> <select id="subjectSelect" onchange="handleSubjectChange()" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"> <option value="">-- Chọn môn học --</option> <option value="Toán">Toán</option> <option value="Ngữ văn">Ngữ văn</option> <option value="Tiếng Anh">Tiếng Anh</option> <option value="Vật lí">Vật lí</option> <option value="Hóa học">Hóa học</option> <option value="Sinh học">Sinh học</option> <option value="Lịch sử">Lịch sử</option> <option value="Địa lí">Địa lí</option> <option value="Quốc phòng">Quốc phòng</option> <option value="Mĩ thuật">Mĩ thuật</option> <option value="Âm nhạc">Âm nhạc</option> <option value="Tin học">Tin học</option> <option value="KTPL">KTPL</option> <option value="GDĐP">GDĐP</option> <option value="TNHN">TNHN</option> <option value="Thể dục">Thể dục</option> <option value="Công nghệ">Công nghệ</option> <option value="other">🖊️ Nhập môn khác...</option> </select> <input type="text" id="customSubjectInput" class="w-full border border-gray-300 rounded-md px-3 py-2 mt-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Nhập tên môn học khác..." style="display: none;">
+     </div>
+     <div><label for="addressInput" class="block text-sm font-medium text-gray-700 mb-1">Địa chỉ học:</label> <input type="text" id="addressInput" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Ví dụ: 123 Đường ABC, Quận 1">
+     </div>
+    </div>
+    <div class="flex gap-3 mt-6"><button onclick="saveEdit()" class="flex-1 bg-indigo-500 hover:bg-indigo-600 text-white py-2 rounded-md font-medium transition-colors">Lưu</button> <button onclick="cancelEdit()" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-2 rounded-md font-medium transition-colors">Hủy</button> <button onclick="clearCell()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md font-medium transition-colors">Xóa</button>
+    </div>
+   </div>
+  </div>
+  <script>
+        let currentEditCell = null;
+        let scheduleData = {};
 
-<style>
-body {
-    font-family: Arial, sans-serif;
-    background: #f5f7fb;
-    margin: 0;
-    padding: 20px;
-}
-h1 {
-    text-align: center;
-}
-.controls {
-    display: flex;
-    gap: 10px;
-    justify-content: center;
-    margin-bottom: 15px;
-}
-button {
-    padding: 8px 14px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-}
-button.primary { background: #4f46e5; color: #fff; }
-button.danger { background: #ef4444; color: #fff; }
-button.gray { background: #9ca3af; color: #fff; }
+        // Khởi tạo thời gian biểu
+        function initSchedule() {
+            const defaultTimes = [
+                '7:00 - 8:00',
+                '8:00 - 9:00'
+            ];
 
-table {
-    width: 100%;
-    border-collapse: collapse;
-    background: #fff;
-}
-th, td {
-    border: 1px solid #ddd;
-    padding: 6px;
-    vertical-align: top;
-}
-th {
-    background: var(--headerColor, #e0e7ff);
-}
-.time {
-    font-weight: bold;
-}
-.cell input {
-    width: 100%;
-    margin-bottom: 4px;
-}
-.task {
-    display: flex;
-    gap: 5px;
-    margin-bottom: 4px;
-}
-.task.done span {
-    text-decoration: line-through;
-    color: gray;
-}
-.task span {
-    flex: 1;
-}
-.small {
-    font-size: 12px;
-    color: #555;
-}
-</style>
-</head>
+            defaultTimes.forEach(time => {
+                addTimeSlotWithTime(time);
+            });
 
-<body>
-
-<h1>📅 Thời Gian Biểu Cá Nhân</h1>
-
-<div class="controls">
-    <button class="primary" onclick="addTime()">➕ Thêm khung giờ</button>
-    <button class="gray" onclick="changeColor()">🎨 Đổi màu</button>
-    <button class="danger" onclick="clearAll()">🗑 Xóa tất cả</button>
-</div>
-
-<table id="schedule">
-<thead>
-<tr>
-    <th>Giờ</th>
-    <th>Thứ 2</th>
-    <th>Thứ 3</th>
-    <th>Thứ 4</th>
-    <th>Thứ 5</th>
-    <th>Thứ 6</th>
-    <th>Thứ 7</th>
-    <th>CN</th>
-</tr>
-</thead>
-<tbody></tbody>
-</table>
-
-<script>
-let scheduleData = {};
-const DAYS = 7;
-
-/* ===== LƯU / TẢI ===== */
-function save() {
-    localStorage.setItem('studySchedule', JSON.stringify(scheduleData));
-}
-function load() {
-    const data = localStorage.getItem('studySchedule');
-    if (data) scheduleData = JSON.parse(data);
-}
-
-/* ===== KHỞI TẠO ===== */
-document.addEventListener('DOMContentLoaded', () => {
-    load();
-    loadColor();
-    render();
-});
-
-/* ===== RENDER ===== */
-function render() {
-    const tbody = document.querySelector('#schedule tbody');
-    tbody.innerHTML = '';
-
-    const times = Object.keys(scheduleData);
-    if (times.length === 0) {
-        addTime('7:00 - 8:00');
-        return;
-    }
-
-    times.forEach(time => {
-        const tr = document.createElement('tr');
-
-        const tdTime = document.createElement('td');
-        tdTime.className = 'time';
-        tdTime.contentEditable = true;
-        tdTime.innerText = time;
-        tdTime.onblur = () => renameTime(time, tdTime.innerText.trim());
-        tr.appendChild(tdTime);
-
-        for (let d = 0; d < DAYS; d++) {
-            tr.appendChild(renderCell(time, d));
+            loadSchedule();
         }
 
-        tbody.appendChild(tr);
-    });
-}
 
-/* ===== Ô NGÀY ===== */
-function renderCell(time, day) {
-    const cell = document.createElement('td');
-    cell.className = 'cell';
 
-    const data = scheduleData[time][day];
+        // Thêm khung giờ với thời gian cụ thể
+        function addTimeSlotWithTime(timeText) {
+            const tableBody = document.getElementById('scheduleTable');
+            const row = document.createElement('tr');
+            row.className = 'border-b border-gray-200 hover:bg-gray-50';
 
-    const subject = document.createElement('input');
-    subject.placeholder = 'Môn học';
-    subject.value = data.subject || '';
-    subject.oninput = e => {
-        data.subject = e.target.value;
-        save();
-    };
+            // Cột thời gian
+            const timeCell = document.createElement('td');
+            timeCell.className = 'time-slot relative p-4 border-r border-gray-200';
+            timeCell.style.backgroundColor = '#fffbeb';
+            timeCell.style.color = '#a16207';
+            timeCell.innerHTML = `
+                <div class="text-xs text-gray-600 mb-1">Thời gian</div>
+                <div class="font-semibold text-indigo-800 text-sm editable" onclick="editTime(this.parentElement)">${timeText}</div>
+                <button onclick="deleteTimeSlot(this.parentElement.parentElement)" class="delete-btn absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center opacity-0 transition-opacity duration-200" title="Xóa hàng này">×</button>
+            `;
+            row.appendChild(timeCell);
 
-    const place = document.createElement('input');
-    place.placeholder = 'Địa chỉ';
-    place.value = data.place || '';
-    place.oninput = e => {
-        data.place = e.target.value;
-        save();
-    };
+            // 7 cột cho các ngày trong tuần
+            for (let day = 0; day < 7; day++) {
+                const cell = document.createElement('td');
+                cell.className = 'editable time-slot p-4 border-r border-gray-200';
+                cell.onclick = () => editSubject(cell, timeText, day);
+                
+                const cellId = `${timeText}-${day}`;
+                if (scheduleData[cellId]) {
+                    const data = scheduleData[cellId];
+                    cell.innerHTML = `
+                        <div class="font-semibold text-blue-800">${data.subject}</div>
+                        <div class="text-sm text-blue-700 mt-1">${data.address}</div>
+                    `;
+                }
+                
+                row.appendChild(cell);
+            }
 
-    cell.append(subject, place);
+            tableBody.appendChild(row);
+            
+            // Thêm hàng ghi chú
+            const noteRow = document.createElement('tr');
+            noteRow.className = 'note-row bg-gray-50 border-b border-gray-200';
+            
+            // Cột ghi chú đầu tiên
+            const noteHeaderCell = document.createElement('td');
+            noteHeaderCell.className = 'p-2 border-r border-gray-200 text-center';
+            noteHeaderCell.style.backgroundColor = '#f9fafb';
+            noteHeaderCell.innerHTML = `
+                <div class="text-xs text-gray-500 font-medium">📝 Ghi chú</div>
+            `;
+            noteRow.appendChild(noteHeaderCell);
+            
+            // 7 cột ghi chú cho các ngày
+            for (let day = 0; day < 7; day++) {
+                const noteCell = document.createElement('td');
+                noteCell.className = 'p-2 border-r border-gray-200';
+                noteCell.innerHTML = `
+                    <div class="space-y-1">
+                        <div class="flex items-center gap-1 mb-1">
+                            <button onclick="addNewTask('${timeText}', ${day})" class="text-xs bg-blue-500 hover:bg-blue-600 text-white px-2 py-0.5 rounded transition-colors">+ Thêm</button>
+                        </div>
+                        <div id="tasks-${timeText}-${day}" class="space-y-1 max-h-20 overflow-y-auto">
+                            <!-- Các task sẽ được thêm vào đây -->
+                        </div>
+                    </div>
+                `;
+                
+                // Tải các task đã lưu
+                setTimeout(() => {
+                    loadTasksForCell(timeText, day);
+                }, 10);
+                
+                noteRow.appendChild(noteCell);
+            }
+            
+            tableBody.appendChild(noteRow);
+            
+            // Cập nhật class cho hàng cuối cùng
+            updateLastRowClass();
+        }
 
-    data.tasks.forEach((t, i) => {
-        const div = document.createElement('div');
-        div.className = 'task' + (t.done ? ' done' : '');
+        // Thêm khung giờ mới
+        function addNewTimeSlot() {
+            // Tạo modal nhập thời gian tùy chỉnh
+            const inputModal = document.createElement('div');
+            inputModal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            inputModal.innerHTML = `
+                <div class="bg-white rounded-lg p-6 w-96 max-w-90vw">
+                    <h3 class="text-xl font-semibold mb-4 text-gray-800">➕ Thêm khung giờ mới</h3>
+                    <div class="mb-4">
+                        <label for="newTimeInput" class="block text-sm font-medium text-gray-700 mb-2">Nhập thời gian:</label>
+                        <input type="text" id="newTimeInput" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Ví dụ: 7:00 - 7:45" value="">
+                        <p class="text-xs text-gray-500 mt-1">Định dạng: giờ:phút - giờ:phút</p>
+                    </div>
+                    <div class="flex gap-3">
+                        <button onclick="confirmAddTimeSlot()" class="flex-1 bg-green-500 hover:bg-green-600 text-white py-2 rounded-md font-medium transition-colors">Thêm</button>
+                        <button onclick="this.parentElement.parentElement.parentElement.remove()" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-2 rounded-md font-medium transition-colors">Hủy</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(inputModal);
+            
+            // Focus vào input
+            setTimeout(() => {
+                document.getElementById('newTimeInput').focus();
+            }, 100);
+            
+            // Xử lý phím Enter
+            document.getElementById('newTimeInput').addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    confirmAddTimeSlot();
+                } else if (e.key === 'Escape') {
+                    inputModal.remove();
+                }
+            });
+        }
 
-        const cb = document.createElement('input');
-        cb.type = 'checkbox';
-        cb.checked = t.done;
-        cb.onchange = () => {
-            t.done = cb.checked;
-            save();
-            render();
-        };
+        // Xác nhận thêm khung giờ
+        function confirmAddTimeSlot() {
+            const input = document.getElementById('newTimeInput');
+            const newTime = input.value.trim();
+            const modal = input.closest('.fixed');
+            
+            if (newTime) {
+                // Kiểm tra xem thời gian đã tồn tại chưa
+                const existingTimes = Array.from(document.querySelectorAll('#scheduleTable .editable')).map(el => el.textContent);
+                if (existingTimes.includes(newTime)) {
+                    showNotification('⚠️ Khung giờ này đã tồn tại!', 'bg-yellow-500');
+                    return;
+                }
+                
+                addTimeSlotWithTime(newTime);
+                modal.remove();
+                saveSchedule();
+                showNotification('✅ Đã thêm khung giờ mới!');
+            } else {
+                showNotification('⚠️ Vui lòng nhập thời gian!', 'bg-yellow-500');
+            }
+        }
 
-        const span = document.createElement('span');
-        span.innerText = t.text;
-        span.contentEditable = true;
-        span.onblur = () => {
-            t.text = span.innerText;
-            save();
-        };
+        // Xóa khung giờ
+        function deleteTimeSlot(row) {
+            const timeCell = row.querySelector('td:first-child');
+            const timeDiv = timeCell.querySelector('.editable');
+            const timeText = timeDiv.textContent;
+            
+            // Tạo modal xác nhận tùy chỉnh thay vì dùng confirm()
+            const confirmModal = document.createElement('div');
+            confirmModal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            confirmModal.innerHTML = `
+                <div class="bg-white rounded-lg p-6 w-96 max-w-90vw">
+                    <h3 class="text-xl font-semibold mb-4 text-gray-800">⚠️ Xác nhận xóa</h3>
+                    <p class="text-gray-600 mb-6">Bạn có chắc chắn muốn xóa khung giờ <strong>"${timeText}"</strong>?<br><br>Tất cả dữ liệu trong hàng này sẽ bị xóa vĩnh viễn.</p>
+                    <div class="flex gap-3">
+                        <button onclick="confirmDeleteRow('${timeText}', this.parentElement.parentElement.parentElement)" class="flex-1 bg-red-500 hover:bg-red-600 text-white py-2 rounded-md font-medium transition-colors">Xóa</button>
+                        <button onclick="this.parentElement.parentElement.parentElement.remove()" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-2 rounded-md font-medium transition-colors">Hủy</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(confirmModal);
+        }
 
-        const del = document.createElement('button');
-        del.innerText = '✕';
-        del.onclick = () => {
-            data.tasks.splice(i, 1);
-            save();
-            render();
-        };
+        // Xác nhận xóa hàng
+        function confirmDeleteRow(timeText, modal) {
+            // Xóa dữ liệu liên quan (bao gồm cả tasks)
+            for (let day = 0; day < 7; day++) {
+                const cellId = `${timeText}-${day}`;
+                delete scheduleData[cellId];
+                
+                // Xóa tất cả tasks thuộc hàng này
+                if (scheduleData.tasks) {
+                    Object.keys(scheduleData.tasks).forEach(taskId => {
+                        const task = scheduleData.tasks[taskId];
+                        if (task.timeText === timeText && task.dayIndex === day) {
+                            delete scheduleData.tasks[taskId];
+                        }
+                    });
+                }
+            }
+            
+            // Tìm và xóa cả hàng thời gian và hàng ghi chú khỏi bảng
+            const rows = document.querySelectorAll('#scheduleTable tr');
+            let foundTimeRow = false;
+            
+            rows.forEach(row => {
+                const timeCell = row.querySelector('td:first-child .editable');
+                if (timeCell && timeCell.textContent === timeText) {
+                    foundTimeRow = true;
+                    row.remove(); // Xóa hàng thời gian
+                } else if (foundTimeRow && row.classList.contains('note-row')) {
+                    row.remove(); // Xóa hàng ghi chú ngay sau đó
+                    foundTimeRow = false;
+                }
+            });
+            
+            // Đóng modal
+            modal.remove();
+            
+            // Lưu và hiển thị thông báo
+            saveSchedule();
+            updateLastRowClass();
+            showNotification('🗑️ Đã xóa khung giờ!', 'bg-orange-500');
+        }
 
-        div.append(cb, span, del);
-        cell.appendChild(div);
-    });
+        // Chỉnh sửa thời gian
+        function editTime(cell) {
+            const currentTimeDiv = cell.querySelector('.editable');
+            const currentTime = currentTimeDiv.textContent;
+            
+            // Tạo input để chỉnh sửa trực tiếp
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = currentTime;
+            input.className = 'w-full text-xs font-semibold text-indigo-800 bg-white border border-indigo-300 rounded px-1 py-0.5 focus:outline-none focus:ring-1 focus:ring-indigo-500';
+            input.placeholder = '7:00 - 7:45';
+            
+            // Thay thế nội dung ô bằng input
+            cell.innerHTML = `
+                <div class="text-xs text-gray-600 mb-1">Thời gian</div>
+            `;
+            cell.appendChild(input);
+            
+            // Focus và select text
+            input.focus();
+            input.select();
+            
+            // Xử lý khi nhấn Enter hoặc mất focus
+            function saveTimeEdit() {
+                const newTime = input.value.trim();
+                if (newTime && newTime !== currentTime) {
+                    // Cập nhật dữ liệu
+                    const row = cell.parentElement;
+                    
+                    // Di chuyển dữ liệu từ thời gian cũ sang thời gian mới
+                    for (let day = 0; day < 7; day++) {
+                        const oldKey = `${currentTime}-${day}`;
+                        const newKey = `${newTime}-${day}`;
+                        if (scheduleData[oldKey]) {
+                            scheduleData[newKey] = scheduleData[oldKey];
+                            delete scheduleData[oldKey];
+                        }
+                    }
+                    
+                    // Cập nhật hiển thị
+                    cell.innerHTML = `
+                        <div class="text-xs text-gray-600 mb-1">Thời gian</div>
+                        <div class="font-semibold text-indigo-800 text-xs editable" onclick="editTime(this.parentElement)">${newTime}</div>
+                        <button onclick="deleteTimeSlot(this.parentElement.parentElement)" class="delete-btn absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center opacity-0 transition-opacity duration-200" title="Xóa hàng này">×</button>
+                    `;
+                    
+                    saveSchedule();
+                } else {
+                    // Khôi phục nội dung cũ nếu không có thay đổi
+                    cell.innerHTML = `
+                        <div class="text-xs text-gray-600 mb-1">Thời gian</div>
+                        <div class="font-semibold text-indigo-800 text-xs editable" onclick="editTime(this.parentElement)">${currentTime}</div>
+                        <button onclick="deleteTimeSlot(this.parentElement.parentElement)" class="delete-btn absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center opacity-0 transition-opacity duration-200" title="Xóa hàng này">×</button>
+                    `;
+                }
+            }
+            
+            // Xử lý sự kiện
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    saveTimeEdit();
+                } else if (e.key === 'Escape') {
+                    e.preventDefault();
+                    // Khôi phục nội dung cũ
+                    cell.innerHTML = `
+                        <div class="text-xs text-gray-600 mb-1">Thời gian</div>
+                        <div class="font-semibold text-indigo-800 text-xs editable" onclick="editTime(this.parentElement)">${currentTime}</div>
+                        <button onclick="deleteTimeSlot(this.parentElement.parentElement)" class="delete-btn absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center opacity-0 transition-opacity duration-200" title="Xóa hàng này">×</button>
+                    `;
+                }
+            });
+            
+            input.addEventListener('blur', saveTimeEdit);
+        }
 
-    const addTask = document.createElement('button');
-    addTask.className = 'small';
-    addTask.innerText = '+ Task';
-    addTask.onclick = () => {
-        data.tasks.push({ text: 'Việc mới', done: false });
-        save();
-        render();
-    };
+        // Danh sách môn học
+        const subjects = [
+            'Toán', 'Ngữ văn', 'Tiếng Anh', 'Vật lí', 'Hóa học', 'Sinh học',
+            'Lịch sử', 'Địa lí', 'Quốc phòng', 'Mĩ thuật', 'Âm nhạc', 'Tin học',
+            'KTPL', 'GDĐP', 'TNHN', 'Thể dục', 'Công nghệ'
+        ];
 
-    cell.appendChild(addTask);
-    return cell;
-}
+        // Chỉnh sửa môn học
+        function editSubject(cell, timeText, dayIndex) {
+            currentEditCell = { cell, timeText, dayIndex };
+            
+            const cellId = `${timeText}-${dayIndex}`;
+            const existingData = scheduleData[cellId] || { subject: '', address: '' };
+            
+            // Cập nhật dropdown môn học
+            updateSubjectDropdown(existingData.subject);
+            document.getElementById('addressInput').value = existingData.address;
+            document.getElementById('editModal').classList.remove('hidden');
+            document.getElementById('editModal').classList.add('flex');
+            document.getElementById('subjectSelect').focus();
+        }
 
-/* ===== THÊM / ĐỔI KHUNG GIỜ ===== */
-function addTime(timeText) {
-    const time = timeText || prompt('Nhập khung giờ:');
-    if (!time || scheduleData[time]) return;
+        // Cập nhật dropdown môn học
+        function updateSubjectDropdown(selectedSubject) {
+            const select = document.getElementById('subjectSelect');
+            const customInput = document.getElementById('customSubjectInput');
+            
+            // Kiểm tra xem môn học có trong danh sách không
+            if (subjects.includes(selectedSubject)) {
+                select.value = selectedSubject;
+                customInput.style.display = 'none';
+                customInput.value = '';
+            } else if (selectedSubject) {
+                select.value = 'other';
+                customInput.style.display = 'block';
+                customInput.value = selectedSubject;
+            } else {
+                select.value = '';
+                customInput.style.display = 'none';
+                customInput.value = '';
+            }
+        }
 
-    scheduleData[time] = {};
-    for (let d = 0; d < DAYS; d++) {
-        scheduleData[time][d] = { subject: '', place: '', tasks: [] };
-    }
-    save();
-    render();
-}
+        // Xử lý thay đổi môn học
+        function handleSubjectChange() {
+            const select = document.getElementById('subjectSelect');
+            const customInput = document.getElementById('customSubjectInput');
+            
+            if (select.value === 'other') {
+                customInput.style.display = 'block';
+                customInput.focus();
+            } else {
+                customInput.style.display = 'none';
+                customInput.value = '';
+            }
+        }
 
-function renameTime(oldTime, newTime) {
-    if (!newTime || newTime === oldTime) return;
-    scheduleData[newTime] = scheduleData[oldTime];
-    delete scheduleData[oldTime];
-    save();
-    render();
-}
+        // Lưu chỉnh sửa
+        function saveEdit() {
+            if (!currentEditCell) return;
+            
+            const select = document.getElementById('subjectSelect');
+            const customInput = document.getElementById('customSubjectInput');
+            const address = document.getElementById('addressInput').value.trim();
+            
+            let subject = '';
+            if (select.value === 'other') {
+                subject = customInput.value.trim();
+            } else {
+                subject = select.value;
+            }
+            
+            const cellId = `${currentEditCell.timeText}-${currentEditCell.dayIndex}`;
+            
+            if (subject || address) {
+                scheduleData[cellId] = { subject, address };
+                currentEditCell.cell.innerHTML = `
+                    <div class="font-semibold text-blue-800">${subject}</div>
+                    <div class="text-sm text-blue-700 mt-1">${address}</div>
+                `;
+            } else {
+                delete scheduleData[cellId];
+                currentEditCell.cell.innerHTML = '';
+            }
+            
+            cancelEdit();
+            saveSchedule();
+        }
 
-/* ===== MÀU ===== */
-function changeColor() {
-    const c = prompt('Nhập màu (vd: #e0e7ff)');
-    if (!c) return;
-    document.documentElement.style.setProperty('--headerColor', c);
-    localStorage.setItem('headerColor', c);
-}
-function loadColor() {
-    const c = localStorage.getItem('headerColor');
-    if (c) document.documentElement.style.setProperty('--headerColor', c);
-}
+        // Xóa ô
+        function clearCell() {
+            if (!currentEditCell) return;
+            
+            const cellId = `${currentEditCell.timeText}-${currentEditCell.dayIndex}`;
+            delete scheduleData[cellId];
+            currentEditCell.cell.innerHTML = '';
+            
+            cancelEdit();
+            saveSchedule();
+        }
 
-/* ===== XÓA ===== */
-function clearAll() {
-    if (!confirm('Xóa toàn bộ thời gian biểu?')) return;
-    scheduleData = {};
-    localStorage.removeItem('studySchedule');
-    render();
-}
-</script>
+        // Hủy chỉnh sửa
+        function cancelEdit() {
+            document.getElementById('editModal').classList.add('hidden');
+            document.getElementById('editModal').classList.remove('flex');
+            document.getElementById('customSubjectInput').style.display = 'none';
+            currentEditCell = null;
+        }
 
-</body>
+        // Hiển thị thông báo
+        function showNotification(message, bgColor = 'bg-green-500') {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 ${bgColor} text-white px-4 py-2 rounded-lg shadow-lg z-50 transform translate-x-full transition-transform duration-300`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            // Hiệu ứng trượt vào
+            setTimeout(() => {
+                notification.classList.remove('translate-x-full');
+            }, 100);
+            
+            // Tự động ẩn sau 3 giây
+            setTimeout(() => {
+                notification.classList.add('translate-x-full');
+                setTimeout(() => {
+                    notification.remove();
+                }, 300);
+            }, 3000);
+        }
+
+        // Lưu thời gian biểu
+        function saveSchedule() {
+            localStorage.setItem('studySchedule', JSON.stringify(scheduleData));
+            showNotification('✅ Đã lưu thời gian biểu!');
+        }
+
+        // Tải thời gian biểu
+        function loadSchedule() {
+            const saved = localStorage.getItem('studySchedule');
+            if (saved) {
+                scheduleData = JSON.parse(saved);
+            }
+        }
+
+        // Xóa tất cả
+        function clearSchedule() {
+            // Tạo modal xác nhận tùy chỉnh thay vì dùng confirm()
+            const confirmModal = document.createElement('div');
+            confirmModal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            confirmModal.innerHTML = `
+                <div class="bg-white rounded-lg p-6 w-96 max-w-90vw">
+                    <h3 class="text-xl font-semibold mb-4 text-gray-800">⚠️ Xác nhận xóa tất cả</h3>
+                    <p class="text-gray-600 mb-6">Bạn có chắc chắn muốn xóa toàn bộ thời gian biểu?<br><br>Tất cả dữ liệu sẽ bị xóa vĩnh viễn.</p>
+                    <div class="flex gap-3">
+                        <button onclick="confirmClearAll(this.parentElement.parentElement.parentElement)" class="flex-1 bg-red-500 hover:bg-red-600 text-white py-2 rounded-md font-medium transition-colors">Xóa tất cả</button>
+                        <button onclick="this.parentElement.parentElement.parentElement.remove()" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-2 rounded-md font-medium transition-colors">Hủy</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(confirmModal);
+        }
+
+        // Xác nhận xóa tất cả
+        function confirmClearAll(modal) {
+            scheduleData = {};
+            document.getElementById('scheduleTable').innerHTML = '';
+            localStorage.removeItem('studySchedule');
+            modal.remove();
+            initSchedule();
+            showNotification('🗑️ Đã xóa toàn bộ thời gian biểu!', 'bg-orange-500');
+        }
+
+
+
+        // Thêm task mới
+        function addNewTask(timeText, dayIndex) {
+            const taskId = `task-${timeText}-${dayIndex}-${Date.now()}`;
+            const taskContainer = document.getElementById(`tasks-${timeText}-${dayIndex}`);
+            
+            const taskDiv = document.createElement('div');
+            taskDiv.className = 'flex items-center gap-1 bg-white border border-gray-200 rounded px-1 py-0.5';
+            taskDiv.innerHTML = `
+                <input type="checkbox" id="${taskId}" onchange="toggleTaskComplete('${taskId}', this.checked)" class="w-3 h-3 text-green-600 rounded focus:ring-green-500 flex-shrink-0">
+                <input type="text" placeholder="Nhập việc cần làm..." class="flex-1 text-xs border-none outline-none bg-transparent" onblur="saveTaskText('${taskId}', this.value)" onkeydown="handleTaskKeydown(event, '${taskId}')">
+                <button onclick="deleteTask('${taskId}')" class="text-red-500 hover:text-red-700 text-xs w-4 h-4 flex items-center justify-center flex-shrink-0" title="Xóa">×</button>
+            `;
+            
+            taskContainer.appendChild(taskDiv);
+            
+            // Focus vào input text
+            const textInput = taskDiv.querySelector('input[type="text"]');
+            textInput.focus();
+            
+            // Khởi tạo dữ liệu task
+            if (!scheduleData.tasks) scheduleData.tasks = {};
+            scheduleData.tasks[taskId] = {
+                text: '',
+                completed: false,
+                timeText: timeText,
+                dayIndex: dayIndex
+            };
+            
+            saveSchedule();
+        }
+
+        // Lưu text của task
+        function saveTaskText(taskId, text) {
+            if (!scheduleData.tasks) scheduleData.tasks = {};
+            if (scheduleData.tasks[taskId]) {
+                scheduleData.tasks[taskId].text = text.trim();
+                
+                // Nếu text rỗng, xóa task
+                if (!text.trim()) {
+                    deleteTask(taskId);
+                    return;
+                }
+            }
+            saveSchedule();
+        }
+
+        // Xử lý phím trong task input
+        function handleTaskKeydown(event, taskId) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                const taskData = scheduleData.tasks[taskId];
+                if (taskData) {
+                    addNewTask(taskData.timeText, taskData.dayIndex);
+                }
+            } else if (event.key === 'Escape') {
+                event.target.blur();
+            }
+        }
+
+        // Toggle hoàn thành task
+        function toggleTaskComplete(taskId, isChecked) {
+            if (!scheduleData.tasks) scheduleData.tasks = {};
+            if (scheduleData.tasks[taskId]) {
+                scheduleData.tasks[taskId].completed = isChecked;
+                
+                const taskElement = document.getElementById(taskId).parentElement;
+                const textInput = taskElement.querySelector('input[type="text"]');
+                
+                if (isChecked) {
+                    textInput.style.textDecoration = 'line-through';
+                    textInput.style.opacity = '0.6';
+                    taskElement.style.backgroundColor = '#f0f9ff';
+                    showNotification('✅ Đã hoàn thành!', 'bg-green-500');
+                } else {
+                    textInput.style.textDecoration = 'none';
+                    textInput.style.opacity = '1';
+                    taskElement.style.backgroundColor = 'white';
+                    showNotification('↩️ Chưa hoàn thành!', 'bg-blue-500');
+                }
+            }
+            saveSchedule();
+        }
+
+        // Xóa task
+        function deleteTask(taskId) {
+            const taskElement = document.getElementById(taskId);
+            if (taskElement) {
+                taskElement.parentElement.remove();
+            }
+            
+            if (scheduleData.tasks && scheduleData.tasks[taskId]) {
+                delete scheduleData.tasks[taskId];
+            }
+            
+            saveSchedule();
+            showNotification('🗑️ Đã xóa việc cần làm!', 'bg-orange-500');
+        }
+
+        // Tải tasks cho một ô cụ thể
+        function loadTasksForCell(timeText, dayIndex) {
+            if (!scheduleData.tasks) return;
+            
+            const taskContainer = document.getElementById(`tasks-${timeText}-${dayIndex}`);
+            if (!taskContainer) return;
+            
+            // Xóa các task cũ
+            taskContainer.innerHTML = '';
+            
+            // Tải các task thuộc ô này
+            Object.keys(scheduleData.tasks).forEach(taskId => {
+                const task = scheduleData.tasks[taskId];
+                if (task.timeText === timeText && task.dayIndex === dayIndex) {
+                    const taskDiv = document.createElement('div');
+                    taskDiv.className = 'flex items-center gap-1 bg-white border border-gray-200 rounded px-1 py-0.5';
+                    
+                    if (task.completed) {
+                        taskDiv.style.backgroundColor = '#f0f9ff';
+                    }
+                    
+                    taskDiv.innerHTML = `
+                        <input type="checkbox" id="${taskId}" ${task.completed ? 'checked' : ''} onchange="toggleTaskComplete('${taskId}', this.checked)" class="w-3 h-3 text-green-600 rounded focus:ring-green-500 flex-shrink-0">
+                        <input type="text" value="${task.text}" class="flex-1 text-xs border-none outline-none bg-transparent" onblur="saveTaskText('${taskId}', this.value)" onkeydown="handleTaskKeydown(event, '${taskId}')" style="${task.completed ? 'text-decoration: line-through; opacity: 0.6;' : ''}">
+                        <button onclick="deleteTask('${taskId}')" class="text-red-500 hover:text-red-700 text-xs w-4 h-4 flex items-center justify-center flex-shrink-0" title="Xóa">×</button>
+                    `;
+                    
+                    taskContainer.appendChild(taskDiv);
+                }
+            });
+        }
+
+        // Xử lý phím tắt
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                cancelEdit();
+            }
+            if (e.key === 'Enter' && document.getElementById('editModal').classList.contains('flex')) {
+                saveEdit();
+            }
+        });
+
+        // Đổi màu tiêu đề
+        function changeHeaderColor(color) {
+            const headerRow = document.getElementById('headerRow');
+            const timeCells = document.querySelectorAll('#scheduleTable td:first-child');
+            
+            // Định nghĩa màu pastel nhạt và màu chữ tương ứng
+            const colorSchemes = {
+                'buttercup': {
+                    bg: '#fffbeb',
+                    text: '#a16207',
+                    border: '#fbbf24'
+                },
+                'soft-peach': {
+                    bg: '#fff7ed',
+                    text: '#c2410c',
+                    border: '#fb923c'
+                },
+                'pale-pink': {
+                    bg: '#fdf2f8',
+                    text: '#be185d',
+                    border: '#f472b6'
+                },
+                'lavender': {
+                    bg: '#f5f3ff',
+                    text: '#6d28d9',
+                    border: '#a78bfa'
+                },
+                'cool-aqua': {
+                    bg: '#f0fdfa',
+                    text: '#0f766e',
+                    border: '#5eead4'
+                },
+                'meadow-green': {
+                    bg: '#f0fdf4',
+                    text: '#166534',
+                    border: '#86efac'
+                },
+                'soft-red': {
+                    bg: '#fef2f2',
+                    text: '#dc2626',
+                    border: '#f87171'
+                }
+            };
+            
+            const scheme = colorSchemes[color];
+            if (!scheme) return;
+            
+            // Cập nhật hàng tiêu đề
+            headerRow.style.backgroundColor = scheme.bg;
+            headerRow.style.color = scheme.text;
+            
+            // Cập nhật border cho các ô tiêu đề
+            const headerCells = headerRow.querySelectorAll('th');
+            headerCells.forEach(cell => {
+                cell.style.borderColor = scheme.border;
+            });
+            
+            // Cập nhật cột thời gian
+            timeCells.forEach(cell => {
+                cell.style.backgroundColor = scheme.bg;
+                cell.style.color = scheme.text;
+            });
+            
+            // Lưu màu đã chọn
+            localStorage.setItem('headerColor', color);
+            showNotification(`🎨 Đã đổi màu tiêu đề thành ${getColorName(color)}!`);
+        }
+        
+        // Lấy tên màu hiển thị
+        function getColorName(color) {
+            const names = {
+                'buttercup': 'Buttercup (Vàng nhạt)',
+                'soft-peach': 'Soft Peach (Cam nhạt)',
+                'pale-pink': 'Pale Pink (Hồng nhạt)',
+                'lavender': 'Lavender (Tím nhạt)',
+                'cool-aqua': 'Cool Aqua (Xanh nhạt)',
+                'meadow-green': 'Meadow Green (Xanh lá nhạt)',
+                'soft-red': 'Soft Red (Đỏ nhạt)'
+            };
+            return names[color] || color;
+        }
+        
+        // Tải màu đã lưu
+        function loadSavedColor() {
+            const savedColor = localStorage.getItem('headerColor');
+            if (savedColor) {
+                changeHeaderColor(savedColor);
+            } else {
+                // Mặc định là buttercup nếu chưa có màu được lưu
+                changeHeaderColor('buttercup');
+            }
+        }
+
+        // Cập nhật class cho hàng cuối cùng
+        function updateLastRowClass() {
+            const rows = document.querySelectorAll('#scheduleTable tr');
+            
+            // Xóa class last-row khỏi tất cả các hàng
+            rows.forEach(row => row.classList.remove('last-row'));
+            
+            // Thêm class last-row cho hàng cuối cùng
+            if (rows.length > 0) {
+                rows[rows.length - 1].classList.add('last-row');
+            }
+        }
+
+        // Tải về điện thoại
+        function downloadScheduleImage() {
+            showNotification('🔄 Đang tạo ảnh cho điện thoại...', 'bg-blue-500');
+            
+            // Tạo nội dung mobile
+            generateMobileScheduleContent();
+            
+            // Sử dụng html2canvas để chụp ảnh
+            setTimeout(() => {
+                const mobileContainer = document.getElementById('mobileScheduleContainer');
+                
+                // Tạm thời hiển thị container để chụp ảnh
+                mobileContainer.style.position = 'fixed';
+                mobileContainer.style.top = '0';
+                mobileContainer.style.left = '0';
+                mobileContainer.style.zIndex = '9999';
+                
+                // Sử dụng canvas để tạo ảnh
+                html2canvas(mobileContainer, {
+                    width: 1080,
+                    height: 1920,
+                    scale: 1,
+                    useCORS: true,
+                    allowTaint: true,
+                    backgroundColor: null
+                }).then(canvas => {
+                    // Ẩn lại container
+                    mobileContainer.style.position = 'fixed';
+                    mobileContainer.style.top = '-9999px';
+                    mobileContainer.style.left = '-9999px';
+                    mobileContainer.style.zIndex = '-1';
+                    
+                    // Tạo link download
+                    const link = document.createElement('a');
+                    link.download = `thoi-gian-bieu-${new Date().toISOString().split('T')[0]}.png`;
+                    link.href = canvas.toDataURL('image/png');
+                    
+                    // Tự động download
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    
+                    showNotification('📱 Đã tải ảnh về điện thoại!', 'bg-green-500');
+                }).catch(error => {
+                    // Ẩn lại container nếu có lỗi
+                    mobileContainer.style.position = 'fixed';
+                    mobileContainer.style.top = '-9999px';
+                    mobileContainer.style.left = '-9999px';
+                    mobileContainer.style.zIndex = '-1';
+                    
+                    // Fallback: tạo ảnh bằng cách khác
+                    downloadScheduleImageFallback();
+                });
+            }, 500);
+        }
+
+        // Phương pháp dự phòng để tạo ảnh
+        function downloadScheduleImageFallback() {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Kích thước mobile (9:16)
+            canvas.width = 1080;
+            canvas.height = 1920;
+            
+            // Nền gradient
+            const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            gradient.addColorStop(0, '#667eea');
+            gradient.addColorStop(1, '#764ba2');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Tiêu đề
+            ctx.fillStyle = 'white';
+            ctx.font = '600 48px Inter, -apple-system, BlinkMacSystemFont, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('Lịch Trình Cá Nhân', canvas.width / 2, 100);
+            
+            let yPos = 180;
+            
+            // Lấy dữ liệu từ bảng
+            const timeSlots = getTimeSlots();
+            
+            timeSlots.forEach(timeSlot => {
+                // Khung thời gian
+                ctx.fillStyle = 'rgba(255,255,255,0.95)';
+                ctx.fillRect(40, yPos, canvas.width - 80, 200);
+                
+                // Thời gian
+                ctx.fillStyle = '#4a5568';
+                ctx.font = '600 32px Inter, -apple-system, BlinkMacSystemFont, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(timeSlot.time, canvas.width / 2, yPos + 50);
+                
+                // Các ngày
+                const days = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
+                const dayWidth = (canvas.width - 120) / 7;
+                
+                days.forEach((day, index) => {
+                    const dayData = timeSlot.days[index];
+                    const x = 60 + index * dayWidth;
+                    
+                    ctx.fillStyle = '#2d3748';
+                    ctx.font = '500 18px Inter, -apple-system, BlinkMacSystemFont, sans-serif';
+                    ctx.textAlign = 'left';
+                    ctx.fillText(day, x, yPos + 80);
+                    
+                    if (dayData.subject) {
+                        ctx.font = '400 16px Inter, -apple-system, BlinkMacSystemFont, sans-serif';
+                        ctx.fillText(dayData.subject, x, yPos + 105);
+                    }
+                    
+                    if (dayData.tasks && dayData.tasks.length > 0) {
+                        ctx.font = '400 12px Inter, -apple-system, BlinkMacSystemFont, sans-serif';
+                        dayData.tasks.forEach((task, taskIndex) => {
+                            const taskY = yPos + 125 + taskIndex * 15;
+                            ctx.fillStyle = task.completed ? '#68d391' : '#718096';
+                            const taskText = task.completed ? `✓ ${task.text}` : `• ${task.text}`;
+                            ctx.fillText(taskText.substring(0, 15), x, taskY);
+                        });
+                    }
+                });
+                
+                yPos += 220;
+            });
+            
+            // Tạo link download
+            const link = document.createElement('a');
+            link.download = `thoi-gian-bieu-${new Date().toISOString().split('T')[0]}.png`;
+            link.href = canvas.toDataURL('image/png');
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showNotification('📱 Đã tải ảnh về điện thoại!', 'bg-green-500');
+        }
+
+        // Tạo nội dung mobile schedule
+        function generateMobileScheduleContent() {
+            const container = document.getElementById('mobileScheduleContainer');
+            const timeSlots = getTimeSlots();
+            
+            let html = '<div class="schedule-title">Lịch Trình Cá Nhân</div>';
+            
+            timeSlots.forEach(timeSlot => {
+                html += `
+                    <div class="time-block">
+                        <div class="time-header">${timeSlot.time}</div>
+                        <div class="day-grid">
+                `;
+                
+                const dayNames = ['Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy', 'Chủ Nhật'];
+                
+                timeSlot.days.forEach((dayData, index) => {
+                    if (dayData.subject || (dayData.tasks && dayData.tasks.length > 0)) {
+                        html += `
+                            <div class="day-item">
+                                <div class="day-name">${dayNames[index]}</div>
+                                ${dayData.subject ? `<div class="subject">${dayData.subject}</div>` : ''}
+                                ${dayData.address ? `<div class="address">${dayData.address}</div>` : ''}
+                                ${dayData.tasks && dayData.tasks.length > 0 ? `
+                                    <div class="tasks">
+                                        ${dayData.tasks.map(task => 
+                                            `<div class="task-item ${task.completed ? 'task-completed' : ''}">${task.completed ? '✓' : '•'} ${task.text}</div>`
+                                        ).join('')}
+                                    </div>
+                                ` : ''}
+                            </div>
+                        `;
+                    }
+                });
+                
+                html += '</div></div>';
+            });
+            
+            container.innerHTML = html;
+        }
+
+        // Lấy dữ liệu thời gian biểu
+        function getTimeSlots() {
+            const timeSlots = [];
+            const rows = document.querySelectorAll('#scheduleTable tr:not(.note-row)');
+            
+            rows.forEach(row => {
+                const timeCell = row.querySelector('td:first-child .editable');
+                if (timeCell) {
+                    const timeText = timeCell.textContent;
+                    const days = [];
+                    
+                    // Lấy dữ liệu 7 ngày
+                    for (let day = 0; day < 7; day++) {
+                        const cellId = `${timeText}-${day}`;
+                        const cellData = scheduleData[cellId] || { subject: '', address: '' };
+                        
+                        // Lấy tasks
+                        const tasks = [];
+                        if (scheduleData.tasks) {
+                            Object.keys(scheduleData.tasks).forEach(taskId => {
+                                const task = scheduleData.tasks[taskId];
+                                if (task.timeText === timeText && task.dayIndex === day && task.text) {
+                                    tasks.push({
+                                        text: task.text,
+                                        completed: task.completed || false
+                                    });
+                                }
+                            });
+                        }
+                        
+                        days.push({
+                            subject: cellData.subject,
+                            address: cellData.address,
+                            tasks: tasks
+                        });
+                    }
+                    
+                    timeSlots.push({
+                        time: timeText,
+                        days: days
+                    });
+                }
+            });
+            
+            return timeSlots;
+        }
+
+        // Thêm thư viện html2canvas
+        function loadHtml2Canvas() {
+            if (typeof html2canvas === 'undefined') {
+                const script = document.createElement('script');
+                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+                script.onload = function() {
+                    console.log('html2canvas loaded');
+                };
+                document.head.appendChild(script);
+            }
+        }
+
+
+
+        // Khởi tạo khi trang được tải
+        document.addEventListener('DOMContentLoaded', function() {
+            // Xóa dữ liệu cũ
+            localStorage.removeItem('studySchedule');
+            localStorage.removeItem('headerColor');
+            scheduleData = {};
+            
+            initSchedule();
+            // Tải màu sau khi khởi tạo bảng
+            setTimeout(loadSavedColor, 100);
+            
+            // Tải thư viện html2canvas
+            loadHtml2Canvas();
+
+
+        });
+    </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'996aa09ad240c7d2',t:'MTc2MTgyNDMxNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
+
